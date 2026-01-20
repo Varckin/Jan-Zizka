@@ -53,10 +53,10 @@ jobs:
             docker compose up -d --build
 
             echo "🚀 Running migrations..."
-            docker compose exec -T mysite python manage.py migrate --noinput
+            docker compose exec -T chatsite python manage.py migrate --noinput
 
             echo "📦 Collecting static files..."
-            docker compose exec -T mysite python manage.py collectstatic --noinput
+            docker compose exec -T chatsite python manage.py collectstatic --noinput
             
             echo "📦 Restat nginx"
             docker restart nginx

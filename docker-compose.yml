@@ -17,8 +17,8 @@ services:
     volumes:
       - ./media:/app/media
       - ./staticcollection:/app/staticcollection
-    ports:
-      - "8000:8000"
+    expose:
+      - "8999"
     depends_on:
       - db
     env_file:
