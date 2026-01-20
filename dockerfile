@@ -21,6 +21,6 @@ RUN rm -rf tests docs *.log
 
 USER 1000:1000
 
-EXPOSE 8000
+EXPOSE 8999
 
-CMD ["uvicorn", "jan_zizka.wsgi:application", "--host", "0.0.0.0", "--port", "8999"]
+CMD ["uvicorn", "jan_zizka.asgi:application", "--host", "0.0.0.0", "--port", "8999"]
