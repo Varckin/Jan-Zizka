@@ -1,5 +1,5 @@
 services:
-  db:
+  chatsite_db:
     image: postgres:15
     container_name: chatsite-db
     restart: unless-stopped
@@ -10,7 +10,7 @@ services:
     networks:
       - xyz
 
-  site:
+  chatsite:
     build: .
     container_name: chatsite
     user: "1000:1000"
@@ -20,7 +20,7 @@ services:
     expose:
       - "8999"
     depends_on:
-      - db
+      - chatsite_db
     env_file:
       - .env
     restart: unless-stopped
