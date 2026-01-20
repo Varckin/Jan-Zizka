@@ -37,6 +37,8 @@ DEBUG = os.getenv("DEBUG", "False").lower() in ("true")
 # Application definition
 
 INSTALLED_APPS = [
+    'user_model',
+    'home',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -153,4 +155,4 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# AUTH_USER_MODEL = "user_model.User"
+AUTH_USER_MODEL = "user_model.User"

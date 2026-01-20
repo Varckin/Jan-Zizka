@@ -1,6 +1,10 @@
 # folders
 .venv/
 __pycache__/
+media/
+staticcollection/
 
 # files
 .env
+*.sqlite3
+git_info.json

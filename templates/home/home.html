@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="{% static 'css/home.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="welcome-container">
+    <h1>Welcome to Messenger!</h1>
+    <p>Chat with friends, create groups and enjoy secure correspondence in one place.</p>
+</div>
+{% endblock %}

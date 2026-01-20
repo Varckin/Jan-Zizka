@@ -1,0 +1,64 @@
+name: Deploy Chat Site
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to server via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            set -e
+            PROJECT_DIR="${{ secrets.PATH_SITE }}"
+            REPO_URL="${{ secrets.GIT_URL }}"
+
+            if [ ! -d "$PROJECT_DIR/.git" ]; then
+              echo "📁 Initializing repo..."
+
+              mkdir -p "$PROJECT_DIR"
+              cd "$PROJECT_DIR"
+              git init
+              git remote add origin "$REPO_URL"
+              git fetch origin main
+              git reset --hard origin/main
+            else
+              echo "🔄 Update rep..."
+              cd "$PROJECT_DIR"
+              git fetch origin main
+              git reset --hard origin/main
+            fi
+
+            cd $PROJECT_DIR
+
+            echo "===== Writing git_info.json ====="
+            COMMIT_HASH=$(git rev-parse HEAD)
+            COMMIT_DATE=$(git log -1 --format=%cd --date=iso)
+            echo "{ \"commit\": \"${COMMIT_HASH}\", \"date\": \"${COMMIT_DATE}\" }" > git_info.json
+            echo "Generated git_info.json → commit: $COMMIT_HASH"
+
+            echo "🧹 Cleaning Docker system..."
+            docker system prune -af
+
+            echo "🐳 Restarting Docker containers..."
+            docker compose down
+
+            echo "🐳 Building and starting services..."
+            docker compose up -d --build
+
+            echo "🚀 Running migrations..."
+            docker compose exec -T mysite python manage.py migrate --noinput
+
+            echo "📦 Collecting static files..."
+            docker compose exec -T mysite python manage.py collectstatic --noinput
+            
+            echo "📦 Restat nginx"
+            docker restart nginx
+
+            echo "✅ Deployment completed successfully!"

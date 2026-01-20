@@ -1,0 +1,40 @@
+.error-container {
+    max-width: 600px;
+    margin: 6rem auto;
+    text-align: center;
+    background-color: white;
+    padding: 3rem 2rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.error-container h1 {
+    font-size: 6rem;
+    color: #e74c3c;
+    margin-bottom: 1rem;
+}
+
+.error-container h2 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    color: #333;
+}
+
+.error-container p {
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+}
+
+.error-container a.button {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    background-color: #e74c3c;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: bold;
+}
+
+.error-container a.button:hover {
+    background-color: #c0392b;
+}

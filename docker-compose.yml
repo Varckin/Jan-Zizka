@@ -1,0 +1,32 @@
+services:
+  db:
+    image: postgres:15
+    container_name: chatsite-db
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ../db:/var/lib/postgresql/data
+    networks:
+      - xyz
+
+  site:
+    build: .
+    container_name: chatsite
+    user: "1000:1000"
+    volumes:
+      - ./media:/app/media
+      - ./staticcollection:/app/staticcollection
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    env_file:
+      - .env
+    restart: unless-stopped
+    networks:
+      - xyz
+
+networks:
+  xyz:
+    external: true
