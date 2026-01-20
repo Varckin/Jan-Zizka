@@ -23,4 +23,4 @@ USER 1000:1000
 
 EXPOSE 8000
 
-CMD ["uvicorn", "jan_zizka.wsgi:application", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "jan_zizka.wsgi:application", "--host", "0.0.0.0", "--port", "8999"]
