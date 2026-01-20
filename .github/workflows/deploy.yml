@@ -52,11 +52,13 @@ jobs:
             echo "🐳 Building and starting services..."
             docker compose up -d --build
 
+            sleep 5
+
             echo "🚀 Running migrations..."
-            docker compose exec -T chatsite python manage.py migrate --noinput
+            docker compose run --rm chatsite python manage.py migrate --noinput
 
             echo "📦 Collecting static files..."
-            docker compose exec -T chatsite python manage.py collectstatic --noinput
+            docker compose run --rm chatsite python manage.py collectstatic --noinput
             
             echo "📦 Restat nginx"
             docker restart nginx
