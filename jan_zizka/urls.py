@@ -7,6 +7,7 @@ from jan_zizka.views import robots_txt
 urlpatterns = [
     path('zizka/', admin.site.urls),
     path('', include('home.urls')),
+    path('auth/', include('authentication.urls')),
     path("robots.txt", robots_txt),
 ]
 

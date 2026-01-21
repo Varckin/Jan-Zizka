@@ -39,6 +39,7 @@ DEBUG = os.getenv("DEBUG", "False").lower() in ("true")
 INSTALLED_APPS = [
     'user_model',
     'home',
+    'authentication',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

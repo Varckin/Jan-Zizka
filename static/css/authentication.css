@@ -1,0 +1,48 @@
+.auth-container {
+    max-width: 400px;
+    margin: 60px auto;
+    padding: 30px;
+    background: #fff;
+    border-radius: 8px;
+}
+
+.auth-title {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.auth-form .form-field {
+    margin-bottom: 15px;
+}
+
+.auth-form label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.auth-form input {
+    width: 100%;
+    padding: 8px;
+    box-sizing: border-box;
+}
+
+.auth-button {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+    cursor: pointer;
+}
+
+.auth-switch {
+    margin-top: 15px;
+    text-align: center;
+}
+
+.auth-messages {
+    margin-bottom: 15px;
+}
+
+.auth-message {
+    color: red;
+    text-align: center;
+}

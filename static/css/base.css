@@ -55,3 +55,17 @@ footer {
     color: white;
     margin-top: 2rem;
 }
+
+.logo a {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    text-decoration: none;
+    color: inherit;
+}
+
+.logo-icon {
+    height: 2em;
+    width: auto;
+    vertical-align: middle;
+}
