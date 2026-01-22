@@ -1,0 +1,35 @@
+.profile-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 20px;
+}
+
+.form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.input,
+.textarea,
+.input-file {
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    font-size: 14px;
+}
+
+.profile-form-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.profile-cancel-btn {
+    background: #eee;
+    border-radius: 8px;
+    padding: 8px 14px;
+    border: none;
+    cursor: pointer;
+}

@@ -1,0 +1,50 @@
+<div id="profile-card">
+    <h2 class="profile-edit-title">Edit profile</h2>
+    
+    <form
+        hx-post="{% url 'profile_edit' %}"
+        hx-target="#profile-card"
+        hx-swap="innerHTML"
+        enctype="multipart/form-data"
+        class="profile-form"
+    >
+        {% csrf_token %}
+    
+        <div class="form-field">
+            <label>First name</label>
+            {{ form.first_name }}
+        </div>
+    
+        <div class="form-field">
+            <label>Last name</label>
+            {{ form.last_name }}
+        </div>
+    
+        <div class="form-field">
+            <label>Bio</label>
+            {{ form.bio }}
+        </div>
+    
+        <div class="form-field">
+            <label>Avatar</label>
+            {{ form.avatar }}
+        </div>
+    
+        <div class="profile-form-actions">
+            <button type="submit" class="profile-edit-btn">
+                Save
+            </button>
+    
+            <button
+                type="button"
+                class="profile-cancel-btn"
+                hx-get="{% url 'profile' %}"
+                hx-target="#profile-card"
+                hx-swap="innerHTML"
+            >
+                Cancel
+            </button>
+        </div>
+    
+    </form>
+</div>

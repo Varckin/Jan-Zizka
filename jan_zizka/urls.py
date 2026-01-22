@@ -8,6 +8,7 @@ urlpatterns = [
     path('zizka/', admin.site.urls),
     path('', include('home.urls')),
     path('auth/', include('authentication.urls')),
+    path('profile/', include('profiles.urls')),
     path("robots.txt", robots_txt),
 ]
 

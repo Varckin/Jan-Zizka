@@ -1,0 +1,45 @@
+<div id="profile-card">
+    <div class="profile-header">
+        {% if user.avatar %}
+            <img src="{{ user.avatar.url }}" class="profile-avatar">
+        {% else %}
+            <div class="profile-avatar placeholder">
+                {{ user.username|first|upper }}
+            </div>
+        {% endif %}
+    
+        <div class="profile-main">
+            <h1 class="profile-username">{{ user.username }}</h1>
+    
+            {% if user.first_name or user.last_name %}
+                <p class="profile-name">
+                    {{ user.first_name }} {{ user.last_name }}
+                </p>
+            {% endif %}
+    
+            <span class="profile-email">{{ user.email }}</span>
+        </div>
+    </div>
+    
+    {% if user.bio %}
+        <div class="profile-bio">
+            {{ user.bio }}
+        </div>
+    {% endif %}
+    
+    <div class="profile-footer">
+        <span class="profile-joined">
+            Joined {{ user.date_joined|date:"d M Y" }}
+        </span>
+    
+        <button
+            class="profile-edit-btn"
+            hx-get="{% url 'profile_edit' %}"
+            hx-target="#profile-card"
+            hx-swap="innerHTML"
+        >
+            Edit profile
+        </button>
+    
+    </div>
+</div>

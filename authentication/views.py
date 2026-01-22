@@ -12,12 +12,12 @@ def auth_view(request):
             if form.is_valid():
                 user = form.save()
                 login(request, user)
-                return redirect("home")
+                return redirect("profile")
         else:
             form = UserLoginForm(request.POST)
             if form.is_valid():
                 login(request, form.cleaned_data["user"])
-                return redirect("home")
+                return redirect("profile")
     else:
         form = UserRegistrationForm() if mode == "register" else UserLoginForm()
 

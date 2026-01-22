@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block head_extra %}
+    <link rel="stylesheet" href="{% static 'css/profile.css' %}">
+{% endblock %}
+
+{% block title %}Profile - {{ profile_user.username }}{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <div id="profile-card">
+        <div class="profile-header">
+            {% if profile_user.avatar %}
+                <img src="{{ profile_user.avatar.url }}" class="profile-avatar">
+            {% else %}
+                <div class="profile-avatar placeholder">
+                    {{ profile_user.username|first|upper }}
+                </div>
+            {% endif %}
+        
+            <div class="profile-main">
+                <h1 class="profile-profile_username">{{ profile_user.username }}</h1>
+        
+                {% if profile_user.first_name or profile_user.last_name %}
+                    <p class="profile-name">
+                        {{ profile_user.first_name }} {{ profile_user.last_name }}
+                    </p>
+                {% endif %}
+        
+                <span class="profile-email">{{ profile_user.email }}</span>
+            </div>
+        </div>
+        
+        {% if profile_user.bio %}
+            <div class="profile-bio">
+                {{ profile_user.bio }}
+            </div>
+        {% endif %}
+        
+        <div class="profile-footer">
+            <span class="profile-joined">
+                Joined {{ profile_user.date_joined|date:"d M Y" }}
+            </span>
+        </div>
+    </div>  
+</div>
+{% endblock %}
