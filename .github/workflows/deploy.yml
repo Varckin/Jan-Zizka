@@ -31,6 +31,7 @@ jobs:
             else
               echo "🔄 Update rep..."
               cd "$PROJECT_DIR"
+              git remote set-url origin "$REPO_URL"
               git fetch origin main
               git reset --hard origin/main
             fi
