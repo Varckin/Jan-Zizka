@@ -14,7 +14,7 @@ services:
     networks:
       - xyz
     depends_on:
-      - redis
+      - chatredis
 
   chatredis:
     image: redis:7-alpine
