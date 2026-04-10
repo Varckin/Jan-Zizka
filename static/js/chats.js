@@ -46,7 +46,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     function appendMessage(user, text, time) {
-
         const emptyState = document.getElementById('empty-chat-state');
         if (emptyState) {
             emptyState.remove();
