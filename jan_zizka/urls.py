@@ -9,6 +9,7 @@ urlpatterns = [
     path('', include('home.urls')),
     path('auth/', include('authentication.urls')),
     path('profile/', include('profiles.urls')),
+    path('chat/', include('chats.urls')),
     path("robots.txt", robots_txt),
 ]
 

@@ -1,16 +1,16 @@
-"""
-ASGI config for jan_zizka project.
-
-It exposes the ASGI callable as a module-level variable named ``application``.
-
-For more information on this file, see
-https://docs.djangoproject.com/en/6.0/howto/deployment/asgi/
-"""
-
-import os
-
+import os, django
 from django.core.asgi import get_asgi_application
+from channels.routing import ProtocolTypeRouter, URLRouter
+from channels.auth import AuthMiddlewareStack
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'jan_zizka.settings')
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "jan_zizka.settings")
+django.setup()
 
-application = get_asgi_application()
+import chats.routing
+
+application = ProtocolTypeRouter({
+    "http": get_asgi_application(),
+    "websocket": AuthMiddlewareStack(
+        URLRouter(chats.routing.websocket_urlpatterns)
+    ),
+})

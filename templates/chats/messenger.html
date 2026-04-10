@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="{% static 'css/chats.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="messenger-container">
+    <div class="contacts-list">
+        <h2>Messages</h2>
+        <ul class="chat-list">
+            {% for item in chats %}
+            <li class="chat-item">
+                <a href="{% url 'dialog' item.user.username %}" class="chat-link">
+                    <div class="avatar">{{ item.user.username|make_list|first|upper }}</div>
+                    <div class="chat-info">
+                        <span class="chat-name">{{ item.user.username }}</span>
+                        {% if item.last_message %}
+                            <span class="last-message">{{ item.last_message.text|truncatechars:35 }}</span>
+                        {% else %}
+                            <span class="last-message muted">Start a conversation</span>
+                        {% endif %}
+                    </div>
+                </a>
+            </li>
+            {% empty %}
+            <li class="empty-state">No conversations yet</li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div class="chat-window-placeholder">
+        <p>Select a chat to start messaging</p>
+    </div>
+</div>
+{% endblock %}

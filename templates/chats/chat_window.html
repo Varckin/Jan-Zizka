@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="{% static 'css/chats.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="messenger-container" id="chat-window" data-username="{{ recipient.username }}" data-current-user="{{ request.user.username }}">
+    <div class="contacts-list" style="display: none;">
+    </div>
+    
+    <div class="chat-window">
+        <div class="chat-header">
+            <a href="{% url 'messenger' %}" class="back-link">← Back</a>
+            <h3>Chat with {{ recipient.username }}</h3>
+        </div>
+        
+        <div class="chat-messages" id="chat-messages">
+            {% for message in messages %}
+                <div class="chat-message {% if message.author == request.user %}my-message{% else %}other-message{% endif %}">
+                    <p>{{ message.text }}</p>
+                    <span class="msg-time">{{ message.created_at|time:"H:i" }}</span>
+                </div>
+            {% empty %}
+                <div class="empty-messages">No messages yet. Say hello!</div>
+            {% endfor %}
+        </div>
+        
+        <form id="chat-form" class="chat-form">
+            <textarea id="message-input" placeholder="Type a message..." rows="1"></textarea>
+            <button type="submit" id="send-btn">Send</button>
+        </form>
+    </div>
+</div>
+
+<script src="{% static 'js/chats.js' %}"></script>
+{% endblock %}

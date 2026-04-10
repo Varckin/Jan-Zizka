@@ -41,6 +41,8 @@ INSTALLED_APPS = [
     'home',
     'authentication',
     'profiles',
+    'channels',
+    'chats',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -77,6 +79,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'jan_zizka.wsgi.application'
+ASGI_APPLICATION = 'jan_zizka.asgi.application'
 
 if DEBUG:
     DATABASES = {
@@ -87,6 +90,12 @@ if DEBUG:
     }
 
     ALLOWED_HOSTS = []
+
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels.layers.InMemoryChannelLayer",
+        }
+    }
 
 else:
     PG_NAME = os.getenv("POSTGRES_DB", "postgres")
@@ -110,6 +119,15 @@ else:
     CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS", "").split(",")
 
     ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",")
+
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels_redis.core.RedisChannelLayer",
+            "CONFIG": {
+                "hosts": [("chatredis", 6379)],
+            },
+        },
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators

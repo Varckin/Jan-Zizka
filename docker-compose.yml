@@ -13,6 +13,17 @@ services:
     restart: unless-stopped
     networks:
       - xyz
+    depends_on:
+      - redis
+
+  chatredis:
+    image: redis:7-alpine
+    container_name: chatsite-redis
+    restart: unless-stopped
+    volumes:
+      - ./redis_data:/data
+    networks:
+      - xyz
 
 networks:
   xyz:
