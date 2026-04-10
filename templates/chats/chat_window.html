@@ -23,7 +23,7 @@
                     <span class="msg-time">{{ message.created_at|time:"H:i" }}</span>
                 </div>
             {% empty %}
-                <div class="empty-messages">No messages yet. Say hello!</div>
+                <div id="empty-chat-state" class="empty-messages">No messages yet. Say hello!</div>
             {% endfor %}
         </div>
         

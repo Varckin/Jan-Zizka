@@ -46,6 +46,12 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     function appendMessage(user, text, time) {
+
+        const emptyState = document.getElementById('empty-chat-state');
+        if (emptyState) {
+            emptyState.remove();
+        }
+        
         const isMyMessage = user === currentUsername;
         const msgDiv = document.createElement("div");
         msgDiv.className = `chat-message ${isMyMessage ? "my-message" : "other-message"}`;
