@@ -8,7 +8,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const chatForm = document.getElementById("chat-form");
     const messageInput = document.getElementById("message-input");
 
-    const socket = new WebSocket(`ws://${window.location.host}/ws/chat/${recipientUsername}/`);
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const socket = new WebSocket(`${protocol}//${window.location.host}/ws/chat/${recipientUsername}/`);
 
     messageInput.addEventListener("input", () => {
         messageInput.style.height = "auto";
