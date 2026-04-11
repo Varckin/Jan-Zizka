@@ -38,6 +38,20 @@ function initChatWindow() {
             const data = JSON.parse(e.data);
             if (data.type === "chat_message") {
                 appendMessage(data.user, data.message, data.time);
+
+                const sidebarLink = document.querySelector(`a.chat-link[data-username="${recipientUsername}"]`);
+                if (sidebarLink) {
+                    const lastMsgEl = sidebarLink.querySelector('.last-message');
+                    if (lastMsgEl) {
+                        lastMsgEl.textContent = data.message.length > 35 ? data.message.substring(0, 35) + '...' : data.message;
+                        lastMsgEl.classList.remove('muted');
+                    }
+                    const badge = sidebarLink.querySelector('.unread-badge');
+                    if (badge) {
+                        badge.textContent = '0';
+                        badge.style.display = 'none';
+                    }
+                }
             }
         } catch (err) {
             console.error("Failed to parse message:", err);
