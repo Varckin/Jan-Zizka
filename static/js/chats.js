@@ -1,7 +1,6 @@
 function initChatWindow() {
     const chatWindow = document.getElementById("chat-window");
     if (!chatWindow) return;
-
     if (chatWindow.dataset.initialized === "true") return;
     chatWindow.dataset.initialized = "true";
 
@@ -12,6 +11,15 @@ function initChatWindow() {
     const messageInput = document.getElementById("message-input");
 
     if (!messageContainer || !chatForm || !messageInput) return;
+
+    const activeChatLink = document.querySelector(`a.chat-link[data-username="${recipientUsername}"]`);
+    if (activeChatLink) {
+        const badge = activeChatLink.querySelector('.unread-badge');
+        if (badge) {
+            badge.textContent = '0';
+            badge.style.display = 'none';
+        }
+    }
 
     if (window._chatSocket && window._chatSocket.readyState !== WebSocket.CLOSED) {
         window._chatSocket.close();
@@ -32,13 +40,13 @@ function initChatWindow() {
                 appendMessage(data.user, data.message, data.time);
             }
         } catch (err) {
-            console.error("Failed to parse message: ", err);
+            console.error("Failed to parse message:", err);
         }
     };
 
-    window._chatSocket.onopen = () => console.log("✅ WebSocket connected");
-    window._chatSocket.onclose = () => console.log("🔌 WebSocket disconnected");
-    window._chatSocket.onerror = (err) => console.error("❌ WebSocket error ", err);
+    window._chatSocket.onopen = () => console.log("✅ Chat WebSocket connected");
+    window._chatSocket.onclose = () => console.log("🔌 Chat WebSocket disconnected");
+    window._chatSocket.onerror = (err) => console.error("❌ Chat WebSocket error", err);
 
     chatForm.addEventListener("submit", (e) => {
         e.preventDefault();
@@ -62,10 +70,7 @@ function initChatWindow() {
         const msgDiv = document.createElement("div");
         msgDiv.className = `chat-message ${isMyMessage ? "my-message" : "other-message"}`;
         
-        msgDiv.innerHTML = `
-            <p>${escapeHtml(text)}</p>
-            <span class="msg-time">${time}</span>
-        `;
+        msgDiv.innerHTML = `<p>${escapeHtml(text)}</p><span class="msg-time">${time}</span>`;
         
         messageContainer.appendChild(msgDiv);
         scrollToBottom();
@@ -90,7 +95,6 @@ function initChatWindow() {
 }
 
 document.addEventListener("DOMContentLoaded", initChatWindow);
-
 document.addEventListener("htmx:afterSwap", (evt) => {
     if (evt.detail.target.closest('.chat-window-placeholder') || 
         evt.detail.target.classList.contains('chat-window-placeholder')) {
@@ -125,6 +129,9 @@ function initSidebarSocket() {
 function updateSidebarItem(data) {
     const chatLink = document.querySelector(`a.chat-link[data-username="${data.sender_username}"]`);
     if (!chatLink) return;
+
+    const isOpened = document.getElementById('chat-window')?.dataset.username === data.sender_username;
+    if (isOpened) return;
 
     const lastMsg = chatLink.querySelector('.last-message');
     if (lastMsg) {
