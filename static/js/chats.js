@@ -57,6 +57,20 @@ function initChatWindow() {
             window._chatSocket.send(JSON.stringify({ message: text }));
         }
 
+        const sidebarLink = document.querySelector(`a.chat-link[data-username="${recipientUsername}"]`);
+        if (sidebarLink) {
+            const lastMsgEl = sidebarLink.querySelector('.last-message');
+            if (lastMsgEl) {
+                lastMsgEl.textContent = text.length > 35 ? text.substring(0, 35) + '...' : text;
+                lastMsgEl.classList.remove('muted');
+            }
+            const badge = sidebarLink.querySelector('.unread-badge');
+            if (badge) {
+                badge.textContent = '0';
+                badge.style.display = 'none';
+            }
+        }
+
         messageInput.value = "";
         messageInput.style.height = "auto";
         messageInput.focus();
