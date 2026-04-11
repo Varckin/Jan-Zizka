@@ -2,7 +2,8 @@
 {% load static %}
 
 {% block head_extra %}
-<link rel="stylesheet" href="{% static 'css/chats.css' %}">
+    <link rel="stylesheet" href="{% static 'css/chats.css' %}">
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
 {% endblock %}
 
 {% block content %}
@@ -12,7 +13,12 @@
         <ul class="chat-list">
             {% for item in chats %}
             <li class="chat-item">
-                <a href="{% url 'dialog' item.user.username %}" class="chat-link">
+                <a href="{% url 'dialog' item.user.username %}"
+                   hx-get="{% url 'dialog' item.user.username %}"
+                   hx-target=".chat-window-placeholder"
+                   hx-swap="innerHTML"
+                   hx-push-url="true"
+                   class="chat-link">
                     <div class="avatar">{{ item.user.username|make_list|first|upper }}</div>
                     <div class="chat-info">
                         <span class="chat-name">{{ item.user.username }}</span>
@@ -29,8 +35,11 @@
             {% endfor %}
         </ul>
     </div>
+
     <div class="chat-window-placeholder">
         <p>Select a chat to start messaging</p>
     </div>
 </div>
+
+<script src="{% static 'js/chats.js' %}"></script>
 {% endblock %}

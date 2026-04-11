@@ -38,4 +38,5 @@ def dialog_view(request, username):
         "chat": chat,
         "recipient": recipient,
         "messages": messages,
+        "current_user": request.user.username
     })
