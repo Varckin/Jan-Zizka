@@ -35,6 +35,10 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
         )
 
     async def receive_json(self, content, **kwargs):
+        if content.get("type") == "mark_read":
+            await self.mark_as_read()
+            return
+        
         message = content.get("message")
 
         if not message:
@@ -70,6 +74,11 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
                 "unread_count": unread_count,
             }
         )
+
+    async def mark_as_read(self):
+        await sync_to_async(
+            lambda: Message.objects.filter(chat=self.chat, is_read=False).update(is_read=True)
+        )()
 
     async def chat_message(self, event):
         await self.send_json({

@@ -52,6 +52,10 @@ function initChatWindow() {
                         badge.style.display = 'none';
                     }
                 }
+
+                if (window._chatSocket.readyState === WebSocket.OPEN) {
+                    window._chatSocket.send(JSON.stringify({ type: "mark_read" }));
+                }
             }
         } catch (err) {
             console.error("Failed to parse message:", err);
