@@ -6,7 +6,23 @@
     
     <div class="chat-header">
         <a href="{% url 'messenger' %}" class="back-link">← Back</a>
-        <h3>Chat with {{ recipient.username }}</h3>
+        
+        <div class="chat-header-info">
+            <div class="chat-avatar">
+                {% if recipient.avatar %}
+                    <img src="{{ recipient.avatar.url }}" alt="{{ recipient.username }}">
+                {% else %}
+                    {{ recipient.username|make_list|first|upper }}
+                {% endif %}
+            </div>
+            <div class="chat-user-details">
+                <span class="chat-username">{{ recipient.username }}</span>
+                <span class="chat-status" id="chat-status-indicator">
+                    <span class="status-dot"></span>
+                    <span class="status-text">offline</span>
+                </span>
+            </div>
+        </div>
     </div>
 
     <div id="chat-messages" class="chat-messages">
