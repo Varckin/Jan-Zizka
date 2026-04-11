@@ -22,7 +22,13 @@
                    hx-swap="innerHTML"
                    hx-push-url="true"
                    data-username="{{ item.user.username }}">
-                    <div class="avatar">{{ item.user.username|make_list|first|upper }}</div>
+                    <div class="avatar">
+                        {% if item.user.avatar %}
+                            <img src="{{ item.user.avatar.url }}" alt="{{ item.user.username }}">
+                        {% else %}
+                            {{ item.user.username|make_list|first|upper }}
+                        {% endif %}
+                    </div>
                     <div class="chat-info">
                         <span class="chat-name">{{ item.user.username }}</span>
                         {% if item.last_message %}
