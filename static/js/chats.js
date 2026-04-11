@@ -113,7 +113,7 @@ function initSidebarSocket() {
     window._sidebarSocket.onmessage = (e) => {
         try {
             const data = JSON.parse(e.data);
-            if (data.type === 'sidebar_update') {
+            if (data.type === 'sidebar.update') {
                 updateSidebarItem(data);
             }
         } catch (err) {
