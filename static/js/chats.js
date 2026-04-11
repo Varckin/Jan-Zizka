@@ -97,3 +97,51 @@ document.addEventListener("htmx:afterSwap", (evt) => {
         initChatWindow();
     }
 });
+
+function initSidebarSocket() {
+    const chatList = document.querySelector('.chat-list');
+    if (!chatList) return;
+    if (window._sidebarSocket && window._sidebarSocket.readyState !== WebSocket.CLOSED) return;
+
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    window._sidebarSocket = new WebSocket(`${protocol}//${window.location.host}/ws/sidebar/`);
+
+    window._sidebarSocket.onopen = () => console.log('✅ Sidebar WebSocket connected');
+    window._sidebarSocket.onclose = () => console.log('🔌 Sidebar WebSocket disconnected');
+    window._sidebarSocket.onerror = (err) => console.error('❌ Sidebar WS error:', err);
+
+    window._sidebarSocket.onmessage = (e) => {
+        try {
+            const data = JSON.parse(e.data);
+            if (data.type === 'sidebar_update') {
+                updateSidebarItem(data);
+            }
+        } catch (err) {
+            console.error('Failed to parse sidebar update:', err);
+        }
+    };
+}
+
+function updateSidebarItem(data) {
+    const chatLink = document.querySelector(`a.chat-link[data-username="${data.sender_username}"]`);
+    if (!chatLink) return;
+
+    const lastMsg = chatLink.querySelector('.last-message');
+    if (lastMsg) {
+        lastMsg.textContent = data.last_message;
+        lastMsg.classList.remove('muted');
+    }
+
+    const badge = chatLink.querySelector('.unread-badge');
+    if (badge) {
+        badge.textContent = data.unread_count;
+        badge.style.display = data.unread_count > 0 ? 'inline-block' : 'none';
+    }
+}
+
+document.addEventListener("DOMContentLoaded", initSidebarSocket);
+document.addEventListener("htmx:afterSwap", (evt) => {
+    if (evt.detail.target.closest('.chat-list') || evt.detail.target.classList.contains('.chat-list')) {
+        initSidebarSocket();
+    }
+});

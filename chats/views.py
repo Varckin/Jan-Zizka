@@ -31,6 +31,7 @@ def dialog_view(request, username):
     recipient = get_object_or_404(User, username=username)
 
     chat = Chat.get_or_create_dialog(request.user, recipient)
+    chat.messages.filter(is_read=False).update(is_read=True)
 
     messages = chat.messages.select_related("author")
 

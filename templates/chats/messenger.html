@@ -18,7 +18,8 @@
                    hx-target=".chat-window-placeholder"
                    hx-swap="innerHTML"
                    hx-push-url="true"
-                   class="chat-link">
+                   class="chat-link"
+                   data-username="{{ item.user.username }}">
                     <div class="avatar">{{ item.user.username|make_list|first|upper }}</div>
                     <div class="chat-info">
                         <span class="chat-name">{{ item.user.username }}</span>
@@ -27,6 +28,7 @@
                         {% else %}
                             <span class="last-message muted">Start a conversation</span>
                         {% endif %}
+                        <span class="unread-badge" style="display: none;"></span>
                     </div>
                 </a>
             </li>

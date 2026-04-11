@@ -56,6 +56,21 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
             }
         )
 
+        recipient_group = f"user_{self.recipient.id}"
+        unread_count = await sync_to_async(lambda: self.chat.messages.filter(is_read=False).count())()
+
+        await self.channel_layer.group_send(
+            recipient_group,
+            {
+                "type": "sidebar.update",
+                "chat_id": self.chat.id,
+                "sender_username": self.user.username,
+                "last_message": msg.text,
+                "time": msg.created_at.strftime("%H:%M"),
+                "unread_count": unread_count,
+            }
+        )
+
     async def chat_message(self, event):
         await self.send_json({
             "type": "chat_message",
@@ -83,3 +98,20 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
         Chat.objects.filter(id=chat.id).update(updated_at=timezone.now())
 
         return msg
+
+class SidebarConsumer(AsyncJsonWebsocketConsumer):
+    async def connect(self):
+        self.user = self.scope["user"]
+        if self.user.is_anonymous:
+            await self.close()
+            return
+
+        self.group_name = f"user_{self.user.id}"
+        await self.channel_layer.group_add(self.group_name, self.channel_name)
+        await self.accept()
+
+    async def disconnect(self, close_code):
+        await self.channel_layer.group_discard(self.group_name, self.channel_name)
+
+    async def sidebar_update(self, event):
+        await self.send_json(event)
