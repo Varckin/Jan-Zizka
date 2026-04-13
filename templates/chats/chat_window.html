@@ -2,6 +2,7 @@
 
 <div id="chat-window" class="chat-window" 
      data-username="{{ recipient.username }}" 
+     data-user-id="{{ recipient.id }}"
      data-current-user="{{ current_user|default:request.user.username }}">
     
     <div class="chat-header">

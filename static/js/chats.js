@@ -208,9 +208,9 @@ function updateUserStatus(data) {
     const chatWindow = document.getElementById('chat-window');
     if (!chatWindow) return;
 
-    const openedUsername = chatWindow.dataset.username;
+    const recipientId = parseInt(chatWindow.dataset.userId);
 
-    if (!openedUsername) return;
+    if (data.user_id !== recipientId) return;
 
     const statusDot = document.querySelector('.status-dot');
     const statusText = document.querySelector('.status-text');
@@ -220,12 +220,8 @@ function updateUserStatus(data) {
     if (data.status === "online") {
         statusDot.classList.add("online");
         statusText.textContent = "online";
-        statusText.classList.add("online");
-        statusText.classList.remove("offline");
     } else {
         statusDot.classList.remove("online");
         statusText.textContent = "offline";
-        statusText.classList.remove("online");
-        statusText.classList.add("offline");
     }
 }
