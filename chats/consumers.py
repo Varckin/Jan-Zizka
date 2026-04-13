@@ -59,11 +59,19 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
                 "message": msg.text,
                 "user": self.user.username,
                 "time": msg.created_at.strftime("%H:%M"),
+                "attachment": None,
+                "attachment_type": None,
             }
         )
 
+        await self.send_sidebar_update(msg)
+
+    async def send_sidebar_update(self, msg):
         recipient_group = f"user_{self.recipient.id}"
-        unread_count = await sync_to_async(lambda: self.chat.messages.filter(is_read=False).count())()
+
+        unread_count = await sync_to_async(
+            lambda: self.chat.messages.filter(is_read=False).count()
+        )()
 
         await self.channel_layer.group_send(
             recipient_group,
@@ -88,6 +96,8 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
             "message": event["message"],
             "user": event["user"],
             "time": event["time"],
+            "attachment": event.get("attachment"),
+            "attachment_type": event.get("attachment_type"),
         })
 
     @sync_to_async

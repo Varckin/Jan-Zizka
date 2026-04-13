@@ -56,11 +56,25 @@ function initChatWindow() {
         try {
             const data = JSON.parse(e.data);
             if (data.type === "chat_message") {
-                appendMessage(data.user, data.message, data.time);
-
-                updateSidebarPreview(
-                    data.message.length > 35 ? data.message.substring(0, 35) + '...' : data.message
+                appendMessage(
+                    data.user,
+                    data.message,
+                    data.time,
+                    data.attachment,
+                    data.attachment_type
                 );
+
+                if (data.attachment_type === "audio") {
+                    updateSidebarPreview("🎤 Voice message");
+                } else if (data.attachment) {
+                    updateSidebarPreview("📎 Attachment");
+                } else {
+                    updateSidebarPreview(
+                        data.message.length > 35
+                            ? data.message.substring(0, 35) + '...'
+                            : data.message
+                    );
+                }
 
                 if (window._chatSocket.readyState === WebSocket.OPEN) {
                     window._chatSocket.send(JSON.stringify({ type: "mark_read" }));
@@ -87,46 +101,44 @@ function initChatWindow() {
             return;
         }
 
-        if (hasVoice) {
-            const now = new Date();
-            const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        if (!hasVoice) {
+            e.preventDefault();
 
-            const msgDiv = document.createElement("div");
-            msgDiv.className = "chat-message my-message";
-            msgDiv.innerHTML = `<p>🎤 Voice message</p><span class="msg-time">${timeStr}</span>`;
-            messageContainer.appendChild(msgDiv);
+            if (window._chatSocket.readyState === WebSocket.OPEN) {
+                window._chatSocket.send(JSON.stringify({ message: text }));
+            }
 
-            requestAnimationFrame(scrollToBottom);
-
-            updateSidebarPreview("🎤 Voice message");
-
-            return;
+            messageInput.value = "";
+            messageInput.style.height = "auto";
+            messageInput.focus();
         }
-
-        e.preventDefault();
-        if (window._chatSocket.readyState === WebSocket.OPEN) {
-            window._chatSocket.send(JSON.stringify({ message: text }));
-        }
-
-        updateSidebarPreview(
-            text.length > 35 ? text.substring(0, 35) + '...' : text
-        );
-
-        messageInput.value = "";
-        messageInput.style.height = "auto";
-        messageInput.focus();
     });
 
-    function appendMessage(user, text, time) {
+    function appendMessage(user, text, time, attachment = null, attachmentType = null) {
         const emptyState = document.getElementById('empty-chat-state');
         if (emptyState) emptyState.remove();
-        
+
         const isMyMessage = user === currentUsername;
         const msgDiv = document.createElement("div");
         msgDiv.className = `chat-message ${isMyMessage ? "my-message" : "other-message"}`;
-        
-        msgDiv.innerHTML = `<p>${escapeHtml(text)}</p><span class="msg-time">${time}</span>`;
-        
+
+        if (attachment && attachmentType === "audio") {
+            msgDiv.innerHTML = `
+                <audio controls src="${attachment}"></audio>
+                <span class="msg-time">${time}</span>
+            `;
+        } else if (attachment) {
+            msgDiv.innerHTML = `
+                <a href="${attachment}" target="_blank">📎 File</a>
+                <span class="msg-time">${time}</span>
+            `;
+        } else {
+            msgDiv.innerHTML = `
+                <p>${escapeHtml(text)}</p>
+                <span class="msg-time">${time}</span>
+            `;
+        }
+
         messageContainer.appendChild(msgDiv);
         requestAnimationFrame(scrollToBottom);
     }
@@ -174,16 +186,6 @@ document.body.addEventListener("htmx:afterRequest", () => {
         voiceInput.value = "";
     }
 
-    requestAnimationFrame(() => {
-        const container = document.getElementById("chat-messages");
-        if (container) {
-            container.scrollTo({
-                top: container.scrollHeight,
-                behavior: "smooth"
-            });
-        }
-    });
-
     _wasVoiceSending = false;
 });
 
@@ -199,8 +201,6 @@ function initSidebarSocket() {
         console.log('✅ Sidebar WebSocket connected');
         startHeartbeat();
     };
-    window._sidebarSocket.onclose = () => console.log('🔌 Sidebar WebSocket disconnected');
-    window._sidebarSocket.onerror = (err) => console.error('❌ Sidebar WS error:', err);
 
     window._sidebarSocket.onmessage = (e) => {
         try {
@@ -229,7 +229,7 @@ function updateSidebarItem(data) {
 
     const lastMsg = chatLink.querySelector('.last-message');
     if (lastMsg) {
-        lastMsg.textContent = data.last_message || "🎤 Voice message";
+        lastMsg.textContent = data.last_message;
         lastMsg.classList.remove('muted');
     }
 
@@ -241,14 +241,6 @@ function updateSidebarItem(data) {
 }
 
 document.addEventListener("DOMContentLoaded", initSidebarSocket);
-document.addEventListener("htmx:afterSwap", (evt) => {
-    if (
-        evt.detail.target.closest('.chat-list') || 
-        evt.detail.target.classList.contains('chat-list')
-    ) {
-        initSidebarSocket();
-    }
-});
 
 function startHeartbeat() {
     if (!window._sidebarSocket) return;

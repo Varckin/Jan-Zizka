@@ -43,7 +43,7 @@
     <form id="chat-form" class="chat-form"
           hx-post="{% url 'send_message' %}"
           hx-target="#chat-messages"
-          hx-swap="beforeend"
+          hx-swap="none"
           hx-encoding="multipart/form-data"
           hx-trigger="submit">
         {% csrf_token %}

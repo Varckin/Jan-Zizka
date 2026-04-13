@@ -4,6 +4,8 @@ from django.shortcuts import render, get_object_or_404
 from django.views.decorators.http import require_POST
 from user_model.models import User
 from chats.models import Chat, Message
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 
 from chats.presence import is_user_online
 
@@ -77,6 +79,43 @@ def send_message_view(request):
         author=request.user,
         text=text,
         attachment=attachment_file
+    )
+
+    channel_layer = get_channel_layer()
+
+    async_to_sync(channel_layer.group_send)(
+        f"chat_{chat.id}",
+        {
+            "type": "chat.message",
+            "message": message.text,
+            "user": request.user.username,
+            "time": message.created_at.strftime("%H:%M"),
+            "attachment": message.attachment.url if message.attachment else None,
+            "attachment_type": message.attachment_type,
+        }
+    )
+
+    recipient = chat.get_other_user(request.user)
+
+    unread_count = chat.messages.filter(is_read=False).count()
+
+    if message.attachment_type == "audio":
+        last_message = "🎤 Voice message"
+    elif message.attachment:
+        last_message = "📎 Attachment"
+    else:
+        last_message = message.text
+
+    async_to_sync(channel_layer.group_send)(
+        f"user_{recipient.id}",
+        {
+            "type": "sidebar.update",
+            "chat_id": chat.id,
+            "sender_username": request.user.username,
+            "last_message": last_message,
+            "time": message.created_at.strftime("%H:%M"),
+            "unread_count": unread_count,
+        }
     )
 
     return render(request, "chats/message_fragment.html", {
