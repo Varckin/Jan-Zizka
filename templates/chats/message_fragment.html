@@ -1,0 +1,19 @@
+<div class="chat-message {% if message.author.username == current_user %}my-message{% else %}other-message{% endif %}">
+    {% if message.attachment %}
+        {% if message.attachment_type == 'audio' %}
+            <audio controls src="{{ message.attachment.url }}" preload="metadata"></audio>
+        {% elif message.attachment_type == 'image' %}
+            <img src="{{ message.attachment.url }}" alt="Attachment" loading="lazy">
+        {% elif message.attachment_type == 'video' %}
+            <video controls src="{{ message.attachment.url }}" preload="metadata"></video>
+        {% else %}
+            <a href="{{ message.attachment.url }}" download class="file-link">📎 {{ message.attachment.name|slice:"-30:" }}</a>
+        {% endif %}
+    {% endif %}
+    
+    {% if message.text %}
+        <p>{{ message.text }}</p>
+    {% endif %}
+    
+    <span class="msg-time">{{ message.created_at|time:"H:i" }}</span>
+</div>

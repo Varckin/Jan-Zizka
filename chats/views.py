@@ -1,8 +1,9 @@
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
+from django.views.decorators.http import require_POST
 from user_model.models import User
-from chats.models import Chat
+from chats.models import Chat, Message
 
 from chats.presence import is_user_online
 
@@ -51,4 +52,33 @@ def user_status_view(request, user_id):
     return JsonResponse({
         "user_id": user_id,
         "is_online": is_user_online(user_id)
+    })
+
+@login_required
+@require_POST
+def send_message_view(request):
+    chat_id = request.POST.get("chat_id")
+    chat = get_object_or_404(Chat, id=chat_id)
+    
+    if request.user not in chat.participants.all():
+        return JsonResponse({"error": "Access Denied"}, status=403)
+
+    text = request.POST.get("text", "").strip()
+    attachment_file = request.FILES.get("attachment")
+
+    if not text and not attachment_file:
+        return JsonResponse({"error": "Message Empty"}, status=400)
+
+    if attachment_file and attachment_file.size > 25 * 1024 * 1024:
+        return JsonResponse({"error": "The file is too large (max. 25MB)"}, status=400)
+
+    message = Message.objects.create(
+        chat=chat,
+        author=request.user,
+        text=text,
+        attachment=attachment_file
+    )
+
+    return render(request, "chats/message_fragment.html", {
+        "message": message, "current_user": request.user.username
     })

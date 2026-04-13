@@ -32,7 +32,23 @@
                     <div class="chat-info">
                         <span class="chat-name">{{ item.user.username }}</span>
                         {% if item.last_message %}
-                            <span class="last-message">{{ item.last_message.text|truncatechars:35 }}</span>
+                            <span class="last-message">
+                                {% if item.last_message.text %}
+                                    {{ item.last_message.text|truncatechars:35 }}
+                                {% elif item.last_message.attachment %}
+                                    {% if item.last_message.attachment_type == "audio" %}
+                                        🎤 Voice message
+                                    {% elif item.last_message.attachment_type == "image" %}
+                                        🖼️ Photo
+                                    {% elif item.last_message.attachment_type == "video" %}
+                                        🎬 Video
+                                    {% else %}
+                                        📎 File: {{ item.last_message.attachment.name|slice:"-20:" }}
+                                    {% endif %}
+                                {% else %}
+                                    Message
+                                {% endif %}
+                            </span>
                         {% else %}
                             <span class="last-message muted">Start a conversation</span>
                         {% endif %}

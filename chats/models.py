@@ -1,6 +1,16 @@
+from pathlib import Path
 from django.db import models
+from django.utils.text import slugify
 from user_model.models import User
 
+
+def user_attachment_path(instance, filename):
+    p = Path(filename)
+    base_name = slugify(p.stem)
+    ext = p.suffix
+    safe_filename = f"{base_name}{ext}" if base_name else filename
+
+    return f"chat_attachments/user_{instance.author.username}/{safe_filename}"
 
 class Chat(models.Model):
     CHAT_TYPES = [
@@ -42,7 +52,8 @@ class Chat(models.Model):
 class Message(models.Model):
     chat = models.ForeignKey(Chat, on_delete=models.CASCADE, related_name="messages")
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="messages")
-    text = models.TextField()
+    text = models.TextField(blank=True)
+    attachment = models.FileField(upload_to=user_attachment_path, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     is_read = models.BooleanField(default=False)
@@ -54,4 +65,23 @@ class Message(models.Model):
         ]
 
     def __str__(self):
+        if self.attachment:
+            return f"{self.author}: 📎 Attachment"
         return f"{self.author}: {self.text[:30]}"
+
+    @property
+    def attachment_type(self):
+        if not self.attachment:
+            return None
+        
+        ext = Path(self.attachment.name).suffix.lower()
+
+        audio_exts = ('.mp3', '.wav', '.ogg', '.webm', '.m4a', '.aac', '.opus')
+        image_exts = ('.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.svg')
+        video_exts = ('.mp4', '.webm', '.mov', '.avi', '.mkv')
+        
+        if ext in audio_exts: return 'audio'
+        if ext in image_exts: return 'image'
+        if ext in video_exts: return 'video'
+        
+        return 'file'

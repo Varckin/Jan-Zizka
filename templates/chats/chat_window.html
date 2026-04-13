@@ -1,5 +1,9 @@
 {% load static %}
 
+{% block head_extra %}
+    <link rel="stylesheet" href="{% static 'css/chats_two.css' %}">
+{% endblock %}
+
 <div id="chat-window" class="chat-window" 
      data-username="{{ recipient.username }}" 
      data-user-id="{{ recipient.id }}"
@@ -30,17 +34,28 @@
 
     <div id="chat-messages" class="chat-messages">
         {% for message in messages %}
-            <div class="chat-message {% if message.author.username == request.user.username %}my-message{% else %}other-message{% endif %}">
-                <p>{{ message.text }}</p>
-                <span class="msg-time">{{ message.created_at|time:"H:i" }}</span>
-            </div>
+            {% include "chats/message_fragment.html" %}
         {% empty %}
             <div id="empty-chat-state" class="empty-messages">No messages yet. Say hello!</div>
         {% endfor %}
     </div>
 
-    <form id="chat-form" class="chat-form">
-        <textarea id="message-input" placeholder="Type a message..." rows="1"></textarea>
+    <form id="chat-form" class="chat-form"
+          hx-post="{% url 'send_message' %}"
+          hx-target="#chat-messages"
+          hx-swap="beforeend"
+          hx-encoding="multipart/form-data"
+          hx-trigger="submit">
+        {% csrf_token %}
+        <input type="hidden" name="chat_id" value="{{ chat.id }}">
+        
+        <textarea id="message-input" name="text" placeholder="Type a message..." rows="1"></textarea>
+
+        <input type="file" name="attachment" id="voice-input" style="display:none"> 
+        <button type="button" id="record-btn" class="btn-record" title="Record voice">🎤</button>
+        
         <button type="submit">Send</button>
     </form>
 </div>
+
+<script src="{% static 'js/chats_attachment.js' %}"></script>
