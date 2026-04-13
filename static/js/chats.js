@@ -67,10 +67,42 @@ function initChatWindow() {
     window._chatSocket.onerror = (err) => console.error("❌ Chat WebSocket error", err);
 
     chatForm.addEventListener("submit", (e) => {
-        e.preventDefault();
+        const voiceInput = document.getElementById("voice-input");
+        const hasVoice = voiceInput && voiceInput.files.length > 0;
         const text = messageInput.value.trim();
-        if (!text) return;
 
+        if (!text && !hasVoice) {
+            e.preventDefault();
+            return;
+        }
+
+        if (hasVoice) {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+            const msgDiv = document.createElement("div");
+            msgDiv.className = "chat-message my-message";
+            msgDiv.innerHTML = `<p>🎤 Voice Message</p><span class="msg-time">${timeStr}</span>`;
+            messageContainer.appendChild(msgDiv);
+            scrollToBottom();
+
+            const sidebarLink = document.querySelector(`a.chat-link[data-username="${recipientUsername}"]`);
+            if (sidebarLink) {
+                const lastMsgEl = sidebarLink.querySelector('.last-message');
+                if (lastMsgEl) {
+                    lastMsgEl.textContent = "🎤 Voice Message";
+                    lastMsgEl.classList.remove('muted');
+                }
+                const badge = sidebarLink.querySelector('.unread-badge');
+                if (badge) {
+                    badge.textContent = '0';
+                    badge.style.display = 'none';
+                }
+            }
+            return;
+        }
+
+        e.preventDefault();
         if (window._chatSocket.readyState === WebSocket.OPEN) {
             window._chatSocket.send(JSON.stringify({ message: text }));
         }
