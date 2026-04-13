@@ -240,7 +240,7 @@ function startStatusPolling(userId) {
 
     statusInterval = setInterval(async () => {
         try {
-            const res = await fetch(`/user_status/${userId}/`);
+            const res = await fetch(`/chat/user_status/${userId}/`);
             const data = await res.json();
 
             updateStatusUI(data.is_online);
