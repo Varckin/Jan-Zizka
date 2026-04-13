@@ -1,4 +1,5 @@
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
 from user_model.models import User
 from chats.models import Chat
@@ -43,4 +44,11 @@ def dialog_view(request, username):
         "is_online": is_user_online(recipient.id),
         "messages": messages,
         "current_user": request.user.username
+    })
+
+@login_required
+def user_status_view(request, user_id):
+    return JsonResponse({
+        "user_id": user_id,
+        "is_online": is_user_online(user_id)
     })

@@ -124,6 +124,13 @@ function initChatWindow() {
     if (messageContainer.children.length > 0) {
         messageContainer.scrollTop = messageContainer.scrollHeight;
     }
+
+    const recipientId = parseInt(chatWindow.dataset.userId);
+
+    if (!window._statusPollingStarted) {
+        startStatusPolling(recipientId);
+        window._statusPollingStarted = true;
+    }
 }
 
 document.addEventListener("DOMContentLoaded", initChatWindow);
@@ -201,7 +208,7 @@ function startHeartbeat() {
         if (window._sidebarSocket.readyState === WebSocket.OPEN) {
             window._sidebarSocket.send(JSON.stringify({ type: "ping" }));
         }
-    }, 25000);
+    }, 5000);
 }
 
 function updateUserStatus(data) {
@@ -225,3 +232,43 @@ function updateUserStatus(data) {
         statusText.textContent = "offline";
     }
 }
+
+let statusInterval = null;
+
+function startStatusPolling(userId) {
+    if (statusInterval) return;
+
+    statusInterval = setInterval(async () => {
+        try {
+            const res = await fetch(`/user_status/${userId}/`);
+            const data = await res.json();
+
+            updateStatusUI(data.is_online);
+
+        } catch (err) {
+            console.error("Status check failed:", err);
+        }
+    }, 5000);
+}
+
+function updateStatusUI(isOnline) {
+    const statusDot = document.querySelector('.status-dot');
+    const statusText = document.querySelector('.status-text');
+
+    if (!statusDot || !statusText) return;
+
+    if (isOnline) {
+        statusDot.classList.add("online");
+        statusText.textContent = "online";
+    } else {
+        statusDot.classList.remove("online");
+        statusText.textContent = "offline";
+    }
+}
+
+window.addEventListener("beforeunload", () => {
+    if (statusInterval) {
+        clearInterval(statusInterval);
+        statusInterval = null;
+    }
+});

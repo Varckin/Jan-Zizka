@@ -2,7 +2,7 @@ from django.core.cache import cache
 import time
 
 
-ONLINE_TIMEOUT = 30
+ONLINE_TIMEOUT = 15
 
 def set_user_online(user_id):
     cache.set(f"user_online_{user_id}", time.time(), timeout=ONLINE_TIMEOUT)

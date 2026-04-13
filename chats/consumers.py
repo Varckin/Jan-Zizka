@@ -129,6 +129,15 @@ class SidebarConsumer(AsyncJsonWebsocketConsumer):
         await self.channel_layer.group_discard(self.group_name, self.channel_name)
         await self.channel_layer.group_discard("online_status", self.channel_name)
 
+        await self.channel_layer.group_send(
+            "online_status",
+            {
+                "type": "user.status",
+                "user_id": self.user.id,
+                "status": "offline"
+            }
+        )
+
     async def receive_json(self, content, **kwargs):
         msg_type = content.get("type")
 
