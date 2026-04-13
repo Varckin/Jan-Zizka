@@ -1,3 +1,5 @@
+let _wasVoiceSending = false;
+
 function initChatWindow() {
     const chatWindow = document.getElementById("chat-window");
     if (!chatWindow) return;
@@ -11,6 +13,23 @@ function initChatWindow() {
     const messageInput = document.getElementById("message-input");
 
     if (!messageContainer || !chatForm || !messageInput) return;
+
+    function updateSidebarPreview(text) {
+        const sidebarLink = document.querySelector(`a.chat-link[data-username="${recipientUsername}"]`);
+        if (!sidebarLink) return;
+
+        const lastMsgEl = sidebarLink.querySelector('.last-message');
+        if (lastMsgEl) {
+            lastMsgEl.textContent = text;
+            lastMsgEl.classList.remove('muted');
+        }
+
+        const badge = sidebarLink.querySelector('.unread-badge');
+        if (badge) {
+            badge.textContent = '0';
+            badge.style.display = 'none';
+        }
+    }
 
     const activeChatLink = document.querySelector(`a.chat-link[data-username="${recipientUsername}"]`);
     if (activeChatLink) {
@@ -39,19 +58,9 @@ function initChatWindow() {
             if (data.type === "chat_message") {
                 appendMessage(data.user, data.message, data.time);
 
-                const sidebarLink = document.querySelector(`a.chat-link[data-username="${recipientUsername}"]`);
-                if (sidebarLink) {
-                    const lastMsgEl = sidebarLink.querySelector('.last-message');
-                    if (lastMsgEl) {
-                        lastMsgEl.textContent = data.message.length > 35 ? data.message.substring(0, 35) + '...' : data.message;
-                        lastMsgEl.classList.remove('muted');
-                    }
-                    const badge = sidebarLink.querySelector('.unread-badge');
-                    if (badge) {
-                        badge.textContent = '0';
-                        badge.style.display = 'none';
-                    }
-                }
+                updateSidebarPreview(
+                    data.message.length > 35 ? data.message.substring(0, 35) + '...' : data.message
+                );
 
                 if (window._chatSocket.readyState === WebSocket.OPEN) {
                     window._chatSocket.send(JSON.stringify({ type: "mark_read" }));
@@ -71,6 +80,8 @@ function initChatWindow() {
         const hasVoice = voiceInput && voiceInput.files.length > 0;
         const text = messageInput.value.trim();
 
+        _wasVoiceSending = hasVoice;
+
         if (!text && !hasVoice) {
             e.preventDefault();
             return;
@@ -82,23 +93,13 @@ function initChatWindow() {
 
             const msgDiv = document.createElement("div");
             msgDiv.className = "chat-message my-message";
-            msgDiv.innerHTML = `<p>🎤 Voice Message</p><span class="msg-time">${timeStr}</span>`;
+            msgDiv.innerHTML = `<p>🎤 Voice message</p><span class="msg-time">${timeStr}</span>`;
             messageContainer.appendChild(msgDiv);
-            scrollToBottom();
 
-            const sidebarLink = document.querySelector(`a.chat-link[data-username="${recipientUsername}"]`);
-            if (sidebarLink) {
-                const lastMsgEl = sidebarLink.querySelector('.last-message');
-                if (lastMsgEl) {
-                    lastMsgEl.textContent = "🎤 Voice Message";
-                    lastMsgEl.classList.remove('muted');
-                }
-                const badge = sidebarLink.querySelector('.unread-badge');
-                if (badge) {
-                    badge.textContent = '0';
-                    badge.style.display = 'none';
-                }
-            }
+            requestAnimationFrame(scrollToBottom);
+
+            updateSidebarPreview("🎤 Voice message");
+
             return;
         }
 
@@ -107,19 +108,9 @@ function initChatWindow() {
             window._chatSocket.send(JSON.stringify({ message: text }));
         }
 
-        const sidebarLink = document.querySelector(`a.chat-link[data-username="${recipientUsername}"]`);
-        if (sidebarLink) {
-            const lastMsgEl = sidebarLink.querySelector('.last-message');
-            if (lastMsgEl) {
-                lastMsgEl.textContent = text.length > 35 ? text.substring(0, 35) + '...' : text;
-                lastMsgEl.classList.remove('muted');
-            }
-            const badge = sidebarLink.querySelector('.unread-badge');
-            if (badge) {
-                badge.textContent = '0';
-                badge.style.display = 'none';
-            }
-        }
+        updateSidebarPreview(
+            text.length > 35 ? text.substring(0, 35) + '...' : text
+        );
 
         messageInput.value = "";
         messageInput.style.height = "auto";
@@ -137,7 +128,7 @@ function initChatWindow() {
         msgDiv.innerHTML = `<p>${escapeHtml(text)}</p><span class="msg-time">${time}</span>`;
         
         messageContainer.appendChild(msgDiv);
-        scrollToBottom();
+        requestAnimationFrame(scrollToBottom);
     }
 
     function escapeHtml(text) {
@@ -167,10 +158,33 @@ function initChatWindow() {
 
 document.addEventListener("DOMContentLoaded", initChatWindow);
 document.addEventListener("htmx:afterSwap", (evt) => {
-    if (evt.detail.target.closest('.chat-window-placeholder') || 
-        evt.detail.target.classList.contains('chat-window-placeholder')) {
+    if (
+        evt.detail.target.closest('.chat-window-placeholder') || 
+        evt.detail.target.classList.contains('chat-window-placeholder')
+    ) {
         initChatWindow();
     }
+});
+
+document.body.addEventListener("htmx:afterRequest", () => {
+    if (!_wasVoiceSending) return;
+
+    const voiceInput = document.getElementById("voice-input");
+    if (voiceInput) {
+        voiceInput.value = "";
+    }
+
+    requestAnimationFrame(() => {
+        const container = document.getElementById("chat-messages");
+        if (container) {
+            container.scrollTo({
+                top: container.scrollHeight,
+                behavior: "smooth"
+            });
+        }
+    });
+
+    _wasVoiceSending = false;
 });
 
 function initSidebarSocket() {
@@ -184,7 +198,7 @@ function initSidebarSocket() {
     window._sidebarSocket.onopen = () => {
         console.log('✅ Sidebar WebSocket connected');
         startHeartbeat();
-    }
+    };
     window._sidebarSocket.onclose = () => console.log('🔌 Sidebar WebSocket disconnected');
     window._sidebarSocket.onerror = (err) => console.error('❌ Sidebar WS error:', err);
 
@@ -215,7 +229,7 @@ function updateSidebarItem(data) {
 
     const lastMsg = chatLink.querySelector('.last-message');
     if (lastMsg) {
-        lastMsg.textContent = data.last_message;
+        lastMsg.textContent = data.last_message || "🎤 Voice message";
         lastMsg.classList.remove('muted');
     }
 
@@ -228,7 +242,10 @@ function updateSidebarItem(data) {
 
 document.addEventListener("DOMContentLoaded", initSidebarSocket);
 document.addEventListener("htmx:afterSwap", (evt) => {
-    if (evt.detail.target.closest('.chat-list') || evt.detail.target.classList.contains('.chat-list')) {
+    if (
+        evt.detail.target.closest('.chat-list') || 
+        evt.detail.target.classList.contains('chat-list')
+    ) {
         initSidebarSocket();
     }
 });
@@ -251,18 +268,7 @@ function updateUserStatus(data) {
 
     if (data.user_id !== recipientId) return;
 
-    const statusDot = document.querySelector('.status-dot');
-    const statusText = document.querySelector('.status-text');
-
-    if (!statusDot || !statusText) return;
-
-    if (data.status === "online") {
-        statusDot.classList.add("online");
-        statusText.textContent = "online";
-    } else {
-        statusDot.classList.remove("online");
-        statusText.textContent = "offline";
-    }
+    updateStatusUI(data.status === "online");
 }
 
 let statusInterval = null;
