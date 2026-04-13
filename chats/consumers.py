@@ -8,6 +8,13 @@ from user_model.models import User
 from chats.presence import set_user_online
 
 
+def build_last_message(msg):
+    if msg.attachment_type == "audio":
+        return "🎤 Voice message"
+    elif msg.attachment:
+        return "📎 Attachment"
+    return msg.text or "Message"
+
 class ChatConsumer(AsyncJsonWebsocketConsumer):
     async def connect(self):
         self.user = self.scope["user"]
@@ -37,7 +44,9 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
         )
 
     async def receive_json(self, content, **kwargs):
-        if content.get("type") == "mark_read":
+        msg_type = content.get("type")
+
+        if msg_type == "mark_read":
             await self.mark_as_read()
             return
         
@@ -70,7 +79,10 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
         recipient_group = f"user_{self.recipient.id}"
 
         unread_count = await sync_to_async(
-            lambda: self.chat.messages.filter(is_read=False).count()
+            lambda: self.chat.messages.filter(
+                is_read=False,
+                author=self.user
+            ).count()
         )()
 
         await self.channel_layer.group_send(
@@ -79,7 +91,7 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
                 "type": "sidebar.update",
                 "chat_id": self.chat.id,
                 "sender_username": self.user.username,
-                "last_message": msg.text,
+                "last_message": build_last_message(msg),
                 "time": msg.created_at.strftime("%H:%M"),
                 "unread_count": unread_count,
             }
@@ -87,7 +99,10 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
 
     async def mark_as_read(self):
         await sync_to_async(
-            lambda: Message.objects.filter(chat=self.chat, is_read=False).update(is_read=True)
+            lambda: Message.objects.filter(
+                chat=self.chat,
+                is_read=False
+            ).exclude(author=self.user).update(is_read=True)
         )()
 
     async def chat_message(self, event):

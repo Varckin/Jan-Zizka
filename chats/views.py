@@ -8,6 +8,7 @@ from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 
 from chats.presence import is_user_online
+from chats.consumers import build_last_message
 
 
 @login_required
@@ -97,14 +98,10 @@ def send_message_view(request):
 
     recipient = chat.get_other_user(request.user)
 
-    unread_count = chat.messages.filter(is_read=False).count()
-
-    if message.attachment_type == "audio":
-        last_message = "🎤 Voice message"
-    elif message.attachment:
-        last_message = "📎 Attachment"
-    else:
-        last_message = message.text
+    unread_count = chat.messages.filter(
+        is_read=False,
+        author=request.user
+    ).count()
 
     async_to_sync(channel_layer.group_send)(
         f"user_{recipient.id}",
@@ -112,7 +109,7 @@ def send_message_view(request):
             "type": "sidebar.update",
             "chat_id": chat.id,
             "sender_username": request.user.username,
-            "last_message": last_message,
+            "last_message": build_last_message(message),
             "time": message.created_at.strftime("%H:%M"),
             "unread_count": unread_count,
         }
