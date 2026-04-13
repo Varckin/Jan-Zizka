@@ -5,6 +5,8 @@ from django.utils import timezone
 from chats.models import Chat, Message
 from user_model.models import User
 
+from chats.presence import set_user_online
+
 
 class ChatConsumer(AsyncJsonWebsocketConsumer):
     async def connect(self):
@@ -117,10 +119,41 @@ class SidebarConsumer(AsyncJsonWebsocketConsumer):
 
         self.group_name = f"user_{self.user.id}"
         await self.channel_layer.group_add(self.group_name, self.channel_name)
+
+        await self.channel_layer.group_add("online_status", self.channel_name)
+        await sync_to_async(set_user_online)(self.user.id)
+
         await self.accept()
 
     async def disconnect(self, close_code):
         await self.channel_layer.group_discard(self.group_name, self.channel_name)
+        await self.channel_layer.group_discard("online_status", self.channel_name)
+
+    async def receive_json(self, content, **kwargs):
+        msg_type = content.get("type")
+
+        if msg_type == "ping":
+            await self.handle_ping()
+
+    async def handle_ping(self):
+        await sync_to_async(set_user_online)(self.user.id)
+        await self.send_json({"type": "pong"})
+
+        await self.channel_layer.group_send(
+            "online_status",
+            {
+                "type": "user.status",
+                "user_id": self.user.id,
+                "status": "online"
+            }
+        )
+
+    async def user_status(self, event):
+        await self.send_json({
+            "type": "user_status",
+            "user_id": event["user_id"],
+            "status": event["status"],
+        })
 
     async def sidebar_update(self, event):
         await self.send_json(event)

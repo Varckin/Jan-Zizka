@@ -3,6 +3,8 @@ from django.shortcuts import render, get_object_or_404
 from user_model.models import User
 from chats.models import Chat
 
+from chats.presence import is_user_online
+
 
 @login_required
 def messenger_view(request):
@@ -38,6 +40,7 @@ def dialog_view(request, username):
     return render(request, "chats/chat_window.html", {
         "chat": chat,
         "recipient": recipient,
+        "is_online": is_user_online(recipient.id),
         "messages": messages,
         "current_user": request.user.username
     })

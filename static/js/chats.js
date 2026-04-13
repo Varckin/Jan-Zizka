@@ -142,16 +142,25 @@ function initSidebarSocket() {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     window._sidebarSocket = new WebSocket(`${protocol}//${window.location.host}/ws/sidebar/`);
 
-    window._sidebarSocket.onopen = () => console.log('✅ Sidebar WebSocket connected');
+    window._sidebarSocket.onopen = () => {
+        console.log('✅ Sidebar WebSocket connected');
+        startHeartbeat();
+    }
     window._sidebarSocket.onclose = () => console.log('🔌 Sidebar WebSocket disconnected');
     window._sidebarSocket.onerror = (err) => console.error('❌ Sidebar WS error:', err);
 
     window._sidebarSocket.onmessage = (e) => {
         try {
             const data = JSON.parse(e.data);
+
             if (data.type === 'sidebar.update') {
                 updateSidebarItem(data);
             }
+
+            if (data.type === 'user_status') {
+                updateUserStatus(data);
+            }
+
         } catch (err) {
             console.error('Failed to parse sidebar update:', err);
         }
@@ -184,3 +193,39 @@ document.addEventListener("htmx:afterSwap", (evt) => {
         initSidebarSocket();
     }
 });
+
+function startHeartbeat() {
+    if (!window._sidebarSocket) return;
+
+    setInterval(() => {
+        if (window._sidebarSocket.readyState === WebSocket.OPEN) {
+            window._sidebarSocket.send(JSON.stringify({ type: "ping" }));
+        }
+    }, 25000);
+}
+
+function updateUserStatus(data) {
+    const chatWindow = document.getElementById('chat-window');
+    if (!chatWindow) return;
+
+    const openedUsername = chatWindow.dataset.username;
+
+    if (!openedUsername) return;
+
+    const statusDot = document.querySelector('.status-dot');
+    const statusText = document.querySelector('.status-text');
+
+    if (!statusDot || !statusText) return;
+
+    if (data.status === "online") {
+        statusDot.classList.add("online");
+        statusText.textContent = "online";
+        statusText.classList.add("online");
+        statusText.classList.remove("offline");
+    } else {
+        statusDot.classList.remove("online");
+        statusText.textContent = "offline";
+        statusText.classList.remove("online");
+        statusText.classList.add("offline");
+    }
+}
