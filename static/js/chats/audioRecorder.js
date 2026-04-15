@@ -1,4 +1,3 @@
-// static/js/chat/audioRecorder.js
 let mediaRecorder = null;
 let audioChunks = [];
 let isRecording = false;
