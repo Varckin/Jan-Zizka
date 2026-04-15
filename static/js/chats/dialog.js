@@ -1,6 +1,7 @@
 import { initChatWebSocket } from './chatWebSocket.js';
 import { startStatusPolling, stopStatusPolling } from './statusPoller.js';
 import { attachMessageForm } from './messageSender.js';
+import { scrollToBottom } from './utils.js';
 
 export async function loadDialog(username) {
     const container = document.querySelector('.chat-window-placeholder');
@@ -20,6 +21,11 @@ export async function loadDialog(username) {
             initChatWebSocket(username, currentUser);
             startStatusPolling(parseInt(chatWindow.dataset.userId));
             attachMessageForm();
+
+            const messagesContainer = document.getElementById('chat-messages');
+            if (messagesContainer) {
+                scrollToBottom(messagesContainer);
+            }
         }
     } catch (err) {
         console.error('Failed to load dialog:', err);

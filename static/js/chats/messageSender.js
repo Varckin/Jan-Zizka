@@ -31,12 +31,11 @@ export function attachMessageForm() {
                 method: 'POST',
                 body: formData
             });
-            const html = await response.text();
-            const container = document.getElementById('chat-messages');
-            const emptyState = document.getElementById('empty-chat-state');
-            if (emptyState) emptyState.remove();
-            container.insertAdjacentHTML('beforeend', html);
-            container.scrollTop = container.scrollHeight;
+
+            if (!response.ok) {
+                console.error('Send failed');
+                return;
+            }
 
             textInput.value = '';
             textInput.style.height = 'auto';
