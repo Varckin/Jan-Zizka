@@ -1,9 +1,5 @@
 {% load static %}
 
-{% block head_extra %}
-    <link rel="stylesheet" href="{% static 'css/chats_two.css' %}">
-{% endblock %}
-
 <div id="chat-window" class="chat-window" 
      data-username="{{ recipient.username }}" 
      data-user-id="{{ recipient.id }}"

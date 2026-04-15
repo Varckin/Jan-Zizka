@@ -45,7 +45,11 @@
                         {% else %}
                             <span class="last-message muted">Start a conversation</span>
                         {% endif %}
-                        <span class="unread-badge" style="display: none;"></span>
+                        {% if item.unread_count %}
+                            <span class="unread-badge">{{ item.unread_count }}</span>
+                        {% else %}
+                            <span class="unread-badge" style="display: none;"></span>
+                        {% endif %}
                     </div>
                 </a>
             </li>

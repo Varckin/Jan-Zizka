@@ -21,17 +21,22 @@ def messenger_view(request):
         other = chat.get_other_participant(request.user)
         last_message = chat.get_last_message()
 
+        unread_count = chat.messages.filter(
+            is_read=False,
+            author=other
+        ).count()
+
         if other:
             prepared_chats.append({
                 "user": other,
                 "chat": chat,
-                "last_message": last_message
+                "last_message": last_message,
+                "unread_count": unread_count
             })
 
     return render(request, "chats/messenger.html", {
         "chats": prepared_chats
     })
-
 
 @login_required
 def dialog_view(request, username):
