@@ -38,6 +38,12 @@
 
     <footer>
         <p>&copy; {% now "Y" %} Messager. All rights reserved.</p>
+        <div>
+            {% if git_commit and git_date %}
+                Commit: {{ git_commit|slice:":7" }};
+                Date commit: {{ git_date|date:"d M Y" }}
+            {% endif %}
+      </div>
     </footer>
 </body>
 </html>
