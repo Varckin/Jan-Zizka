@@ -73,24 +73,22 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
             }
         )
 
-        await self.send_sidebar_update(msg)
+        await self.send_sidebar_update(msg, recipient=self.recipient)
+        await self.send_sidebar_update(msg, recipient=self.user)
 
-    async def send_sidebar_update(self, msg):
-        recipient_group = f"user_{self.recipient.id}"
-
-        unread_count = await sync_to_async(
-            lambda: self.chat.messages.filter(
-                is_read=False,
-                author=self.user
-            ).count()
-        )()
+    async def send_sidebar_update(self, msg, recipient):
+        unread_count = 0
+        if recipient != self.user:
+            unread_count = await sync_to_async(
+                lambda: self.chat.messages.filter(is_read=False, author=self.user).count()
+            )()
 
         await self.channel_layer.group_send(
-            recipient_group,
+            f"user_{recipient.id}",
             {
                 "type": "sidebar.update",
                 "chat_id": self.chat.id,
-                "sender_username": self.user.username,
+                "sender_username": self.user.username if recipient != self.user else self.recipient.username,
                 "last_message": build_last_message(msg),
                 "time": msg.created_at.strftime("%H:%M"),
                 "unread_count": unread_count,
@@ -155,9 +153,7 @@ class SidebarConsumer(AsyncJsonWebsocketConsumer):
         await self.channel_layer.group_discard("online_status", self.channel_name)
 
     async def receive_json(self, content, **kwargs):
-        msg_type = content.get("type")
-
-        if msg_type == "ping":
+        if content.get("type") == "ping":
             await self.handle_ping()
 
     async def handle_ping(self):

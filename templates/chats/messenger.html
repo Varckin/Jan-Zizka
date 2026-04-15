@@ -5,7 +5,6 @@
 
 {% block head_extra %}
     <link rel="stylesheet" href="{% static 'css/chats.css' %}">
-    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
 {% endblock %}
 
 {% block content %}
@@ -15,13 +14,7 @@
         <ul class="chat-list">
             {% for item in chats %}
             <li class="chat-item">
-                <a class="chat-link"
-                   href="{% url 'dialog' item.user.username %}"
-                   hx-get="{% url 'dialog' item.user.username %}"
-                   hx-target=".chat-window-placeholder"
-                   hx-swap="innerHTML"
-                   hx-push-url="true"
-                   data-username="{{ item.user.username }}">
+                <a class="chat-link" href="{% url 'dialog' item.user.username %}" data-username="{{ item.user.username }}">
                     <div class="avatar">
                         {% if item.user.avatar %}
                             <img src="{{ item.user.avatar.url }}" alt="{{ item.user.username }}">
@@ -67,5 +60,5 @@
     </div>
 </div>
 
-<script src="{% static 'js/chats.js' %}"></script>
+<script type="module" src="{% static 'js/chats/index.js' %}"></script>
 {% endblock %}

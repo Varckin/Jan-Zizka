@@ -40,22 +40,15 @@
         {% endfor %}
     </div>
 
-    <form id="chat-form" class="chat-form"
-          hx-post="{% url 'send_message' %}"
-          hx-target="#chat-messages"
-          hx-swap="none"
-          hx-encoding="multipart/form-data"
-          hx-trigger="submit">
+    <form id="chat-form" class="chat-form" action="{% url 'send_message' %}" method="post" enctype="multipart/form-data">
         {% csrf_token %}
         <input type="hidden" name="chat_id" value="{{ chat.id }}">
         
         <textarea id="message-input" name="text" placeholder="Type a message..." rows="1"></textarea>
 
-        <input type="file" name="attachment" id="voice-input" style="display:none"> 
+        <input type="file" name="attachment" id="voice-input" accept="audio/*" style="display:none"> 
         <button type="button" id="record-btn" class="btn-record" title="Record voice">🎤</button>
         
         <button type="submit">Send</button>
     </form>
 </div>
-
-<script src="{% static 'js/chats_attachment.js' %}"></script>

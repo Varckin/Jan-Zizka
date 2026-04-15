@@ -38,7 +38,7 @@ def dialog_view(request, username):
     recipient = get_object_or_404(User, username=username)
 
     chat = Chat.get_or_create_dialog(request.user, recipient)
-    chat.messages.filter(is_read=False).update(is_read=True)
+    chat.messages.filter(is_read=False).exclude(author=request.user).update(is_read=True)
 
     messages = chat.messages.select_related("author")
 
@@ -96,9 +96,9 @@ def send_message_view(request):
         }
     )
 
-    recipient = chat.get_other_user(request.user)
+    recipient = chat.get_other_participant(request.user)
 
-    unread_count = chat.messages.filter(
+    unread_count_recipient = chat.messages.filter(
         is_read=False,
         author=request.user
     ).count()
@@ -111,7 +111,19 @@ def send_message_view(request):
             "sender_username": request.user.username,
             "last_message": build_last_message(message),
             "time": message.created_at.strftime("%H:%M"),
-            "unread_count": unread_count,
+            "unread_count": unread_count_recipient,
+        }
+    )
+
+    async_to_sync(channel_layer.group_send)(
+        f"user_{request.user.id}",
+        {
+            "type": "sidebar.update",
+            "chat_id": chat.id,
+            "sender_username": recipient.username,
+            "last_message": build_last_message(message),
+            "time": message.created_at.strftime("%H:%M"),
+            "unread_count": 0,
         }
     )
 
