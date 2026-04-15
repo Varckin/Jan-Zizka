@@ -178,3 +178,126 @@ class SidebarConsumer(AsyncJsonWebsocketConsumer):
 
     async def sidebar_update(self, event):
         await self.send_json(event)
+
+class GroupChatConsumer(AsyncJsonWebsocketConsumer):
+    async def connect(self):
+        self.user = self.scope["user"]
+        if self.user.is_anonymous:
+            await self.close()
+            return
+
+        self.slug = self.scope["url_route"]["kwargs"]["slug"]
+        self.chat = await self.get_chat(self.slug)
+
+        if not self.chat:
+            await self.close()
+            return
+
+        is_participant = await sync_to_async(self.chat.participants.filter(id=self.user.id).exists)()
+        if not is_participant:
+            await self.close()
+            return
+
+        self.room_group_name = f"chat_{self.chat.id}"
+
+        await self.channel_layer.group_add(
+            self.room_group_name,
+            self.channel_name
+        )
+
+        await self.accept()
+
+    async def disconnect(self, close_code):
+        await self.channel_layer.group_discard(
+            self.room_group_name,
+            self.channel_name
+        )
+
+    async def receive_json(self, content, **kwargs):
+        msg_type = content.get("type")
+        if msg_type == "mark_read":
+            await self.mark_as_read()
+            return
+
+        message_text = content.get("message")
+        if not message_text:
+            return
+
+        msg = await self.save_message(
+            chat=self.chat,
+            user=self.user,
+            text=message_text
+        )
+
+        await self.channel_layer.group_send(
+            self.room_group_name,
+            {
+                "type": "chat.message",
+                "message": msg.text,
+                "user": self.user.username,
+                "time": msg.created_at.strftime("%H:%M"),
+                "attachment": None,
+                "attachment_type": None,
+            }
+        )
+
+        await self.send_sidebar_updates(msg)
+
+    async def send_sidebar_updates(self, msg):
+        participants = await sync_to_async(list)(self.chat.participants.all())
+        for participant in participants:
+            unread_count = await sync_to_async(
+                lambda u=participant: self.chat.messages.filter(
+                    is_read=False
+                ).exclude(author=u).count()
+            )()
+
+            await self.channel_layer.group_send(
+                f"user_{participant.id}",
+                {
+                    "type": "sidebar.update",
+                    "chat_id": self.chat.id,
+                    "sender_username": self.user.username,
+                    "last_message": build_last_message(msg),
+                    "time": msg.created_at.strftime("%H:%M"),
+                    "unread_count": unread_count,
+                    "chat_type": "group",
+                    "chat_title": self.chat.title,
+                    "chat_slug": self.chat.slug,
+                }
+            )
+
+    async def mark_as_read(self):
+        await sync_to_async(
+            lambda: Message.objects.filter(
+                chat=self.chat,
+                is_read=False
+            ).exclude(author=self.user).update(is_read=True)
+        )()
+
+    async def chat_message(self, event):
+        await self.send_json({
+            "type": "chat_message",
+            "message": event["message"],
+            "user": event["user"],
+            "time": event["time"],
+            "attachment": event.get("attachment"),
+            "attachment_type": event.get("attachment_type"),
+        })
+
+    @sync_to_async
+    def get_chat(self, slug):
+        try:
+            return Chat.objects.get(slug=slug, chat_type='group')
+        except Chat.DoesNotExist:
+            return None
+
+    @sync_to_async
+    def save_message(self, chat, user, text):
+        msg = Message.objects.create(
+            chat=chat,
+            author=user,
+            text=text
+        )
+        Chat.objects.filter(id=chat.id).update(updated_at=timezone.now())
+        return msg

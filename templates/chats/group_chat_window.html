@@ -1,0 +1,39 @@
+{% load static %}
+
+<div id="chat-window" class="chat-window" 
+     data-chat-slug="{{ chat.slug }}" 
+     data-chat-id="{{ chat.id }}"
+     data-current-user="{{ current_user|default:request.user.username }}">
+
+    <div class="chat-header">
+        <a href="{% url 'messenger' %}" class="back-link">← Back</a>
+        <div class="chat-header-info">
+            <div class="chat-avatar">
+                {{ chat.title|make_list|first|upper }}
+            </div>
+            <div class="chat-user-details">
+                <span class="chat-username">{{ chat.title }}</span>
+                <span class="chat-status">
+                    {{ chat.participants.count }} members
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div id="chat-messages" class="chat-messages">
+        {% for message in messages %}
+            {% include "chats/message_fragment.html" %}
+        {% empty %}
+            <div id="empty-chat-state" class="empty-messages">No messages yet.</div>
+        {% endfor %}
+    </div>
+
+    <form id="chat-form" class="chat-form" action="{% url 'send_message' %}" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="hidden" name="chat_id" value="{{ chat.id }}">
+        <textarea id="message-input" name="text" placeholder="Type a message..." rows="1"></textarea>
+        <input type="file" name="attachment" id="voice-input" accept="audio/*" style="display:none">
+        <button type="button" id="record-btn" class="btn-record" title="Record voice">🎤</button>
+        <button type="submit">Send</button>
+    </form>
+</div>

@@ -33,6 +33,17 @@ class Chat(models.Model):
     def get_last_message(self):
         return self.messages.select_related("author").order_by("-created_at").first()
     
+    def save(self, *args, **kwargs):
+        if self.chat_type == 'group' and not self.slug:
+            base_slug = slugify(self.title) if self.title else f"group-{self.id or ''}"
+            slug = base_slug
+            counter = 1
+            while Chat.objects.filter(slug=slug).exists():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+            self.slug = slug
+        super().save(*args, **kwargs)
+    
     @staticmethod
     def get_or_create_dialog(user1, user2):
         chat = Chat.objects.filter(

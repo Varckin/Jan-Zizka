@@ -10,48 +10,100 @@
 {% block content %}
 <div class="messenger-container">
     <div class="contacts-list">
-        <h2>Messages</h2>
+        <div class="contacts-header">
+            <h2>Messages</h2>
+            <div class="menu-wrapper">
+                <button id="chat-menu-btn" class="menu-btn" aria-label="Menu">⋮</button>
+                <div id="chat-menu-dropdown" class="menu-dropdown hidden">
+                    <div class="menu-section">
+                        <button id="create-group-btn" class="menu-item">➕ New group chat</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="new-dialog-container">
+            <input type="text" id="new-dialog-input" class="new-dialog-input" placeholder="Find or start a conversation...">
+        </div>
+
         <ul class="chat-list">
             {% for item in chats %}
             <li class="chat-item">
-                <a class="chat-link" href="{% url 'dialog' item.user.username %}" data-username="{{ item.user.username }}">
-                    <div class="avatar">
-                        {% if item.user.avatar %}
-                            <img src="{{ item.user.avatar.url }}" alt="{{ item.user.username }}">
-                        {% else %}
-                            {{ item.user.username|make_list|first|upper }}
-                        {% endif %}
-                    </div>
-                    <div class="chat-info">
-                        <span class="chat-name">{{ item.user.username }}</span>
-                        {% if item.last_message %}
-                            <span class="last-message">
-                                {% if item.last_message.text %}
-                                    {{ item.last_message.text|truncatechars:35 }}
-                                {% elif item.last_message.attachment %}
-                                    {% if item.last_message.attachment_type == "audio" %}
-                                        🎤 Voice message
-                                    {% elif item.last_message.attachment_type == "image" %}
-                                        🖼️ Photo
-                                    {% elif item.last_message.attachment_type == "video" %}
-                                        🎬 Video
+                {% if item.type == 'dialog' %}
+                    <a class="chat-link" href="{% url 'dialog' item.user.username %}" data-username="{{ item.user.username }}">
+                        <div class="avatar">
+                            {% if item.user.avatar %}
+                                <img src="{{ item.user.avatar.url }}" alt="{{ item.user.username }}">
+                            {% else %}
+                                {{ item.user.username|make_list|first|upper }}
+                            {% endif %}
+                        </div>
+                        <div class="chat-info">
+                            <span class="chat-name">{{ item.user.username }}</span>
+                            {% if item.last_message %}
+                                <span class="last-message">
+                                    {% if item.last_message.text %}
+                                        {{ item.last_message.text|truncatechars:35 }}
+                                    {% elif item.last_message.attachment %}
+                                        {% if item.last_message.attachment_type == "audio" %}
+                                            🎤 Voice message
+                                        {% elif item.last_message.attachment_type == "image" %}
+                                            🖼️ Photo
+                                        {% elif item.last_message.attachment_type == "video" %}
+                                            🎬 Video
+                                        {% else %}
+                                            📎 File: {{ item.last_message.attachment.name|slice:"-20:" }}
+                                        {% endif %}
                                     {% else %}
-                                        📎 File: {{ item.last_message.attachment.name|slice:"-20:" }}
+                                        Message
                                     {% endif %}
-                                {% else %}
-                                    Message
-                                {% endif %}
-                            </span>
-                        {% else %}
-                            <span class="last-message muted">Start a conversation</span>
-                        {% endif %}
-                        {% if item.unread_count %}
-                            <span class="unread-badge">{{ item.unread_count }}</span>
-                        {% else %}
-                            <span class="unread-badge" style="display: none;"></span>
-                        {% endif %}
-                    </div>
-                </a>
+                                </span>
+                            {% else %}
+                                <span class="last-message muted">Start a conversation</span>
+                            {% endif %}
+                            {% if item.unread_count %}
+                                <span class="unread-badge">{{ item.unread_count }}</span>
+                            {% else %}
+                                <span class="unread-badge" style="display: none;"></span>
+                            {% endif %}
+                        </div>
+                    </a>
+                {% else %}
+                    <a class="chat-link" href="{% url 'group_chat' item.chat.slug %}" data-chat-slug="{{ item.chat.slug }}">
+                        <div class="avatar">
+                            {{ item.title|make_list|first|upper }}
+                        </div>
+                        <div class="chat-info">
+                            <span class="chat-name">{{ item.title }}</span>
+                            {% if item.last_message %}
+                                <span class="last-message">
+                                    {% if item.last_message.text %}
+                                        {{ item.last_message.text|truncatechars:35 }}
+                                    {% elif item.last_message.attachment %}
+                                        {% if item.last_message.attachment_type == "audio" %}
+                                            🎤 Voice message
+                                        {% elif item.last_message.attachment_type == "image" %}
+                                            🖼️ Photo
+                                        {% elif item.last_message.attachment_type == "video" %}
+                                            🎬 Video
+                                        {% else %}
+                                            📎 File: {{ item.last_message.attachment.name|slice:"-20:" }}
+                                        {% endif %}
+                                    {% else %}
+                                        Message
+                                    {% endif %}
+                                </span>
+                            {% else %}
+                                <span class="last-message muted">No messages yet</span>
+                            {% endif %}
+                            {% if item.unread_count %}
+                                <span class="unread-badge">{{ item.unread_count }}</span>
+                            {% else %}
+                                <span class="unread-badge" style="display: none;"></span>
+                            {% endif %}
+                        </div>
+                    </a>
+                {% endif %}
             </li>
             {% empty %}
             <li class="empty-state">No conversations yet</li>
@@ -61,6 +113,34 @@
 
     <div class="chat-window-placeholder">
         <p>Select a chat to start messaging</p>
+    </div>
+</div>
+
+<div id="create-group-modal" class="modal hidden">
+    <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <h3>Create group chat</h3>
+        <form id="create-group-form">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="group-name">Group name</label>
+                <input type="text" id="group-name" name="name" required maxlength="255">
+            </div>
+            <div class="form-group">
+                <label>Add participants</label>
+                <div id="participants-container">
+                    <div class="participant-input-row">
+                        <input type="text" class="participant-username" placeholder="Enter username">
+                        <button type="button" class="remove-participant-btn" disabled>✕</button>
+                    </div>
+                </div>
+                <button type="button" id="add-participant-btn" class="add-btn">+ Add another</button>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="create-btn">Create</button>
+                <button type="button" class="cancel-btn">Cancel</button>
+            </div>
+        </form>
     </div>
 </div>
 

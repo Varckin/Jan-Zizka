@@ -3,10 +3,16 @@ import { startStatusPolling, stopStatusPolling } from './statusPoller.js';
 import { attachMessageForm } from './messageSender.js';
 import { scrollToBottom } from './utils.js';
 
-export async function loadDialog(username) {
+export async function loadDialog(identifier) {
     const container = document.querySelector('.chat-window-placeholder');
     try {
-        const response = await fetch(`/chat/${username}/`);
+        let url;
+        if (identifier.startsWith('@')) {
+            url = `/chat/${identifier.substring(1)}/`;
+        } else {
+            url = `/chat/group/${identifier}/`;
+        }
+        const response = await fetch(url);
         const html = await response.text();
         container.innerHTML = html;
 
@@ -18,14 +24,33 @@ export async function loadDialog(username) {
             stopStatusPolling();
 
             const currentUser = chatWindow.dataset.currentUser;
-            initChatWebSocket(username, currentUser);
-            startStatusPolling(parseInt(chatWindow.dataset.userId));
-            attachMessageForm();
+            const chatSlug = chatWindow.dataset.chatSlug;
+            const chatId = chatWindow.dataset.chatId;
 
-            const messagesContainer = document.getElementById('chat-messages');
-            if (messagesContainer) {
-                scrollToBottom(messagesContainer);
+            let wsUrl;
+            if (chatSlug) {
+                wsUrl = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws/chat/group/${chatSlug}/`;
+            } else {
+                const username = chatWindow.dataset.username;
+                wsUrl = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws/chat/${username}/`;
             }
+
+            const socket = new WebSocket(wsUrl);
+            window._chatSocket = socket;
+            socket.onopen = () => console.log('Chat WebSocket connected');
+            socket.onmessage = (e) => {
+                const data = JSON.parse(e.data);
+                if (data.type === 'chat_message') {
+                    appendMessage(data.user, data.message, data.time, data.attachment, data.attachment_type, currentUser);
+                    if (socket.readyState === WebSocket.OPEN) {
+                        socket.send(JSON.stringify({ type: 'mark_read' }));
+                    }
+                }
+            };
+            socket.onclose = () => console.log('Chat WebSocket disconnected');
+
+            attachMessageForm();
+            scrollToBottom(document.getElementById('chat-messages'));
         }
     } catch (err) {
         console.error('Failed to load dialog:', err);

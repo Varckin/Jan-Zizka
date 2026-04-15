@@ -29,7 +29,15 @@ export function initSidebarSocket() {
 }
 
 function updateSidebarItem(data) {
-    const chatLink = document.querySelector(`a.chat-link[data-username="${data.sender_username}"]`);
+    const chatType = data.chat_type || 'dialog';
+    let selector;
+    if (chatType === 'group') {
+        selector = `a.chat-link[data-chat-slug="${data.chat_slug}"]`;
+    } else {
+        selector = `a.chat-link[data-username="${data.sender_username}"]`;
+    }
+
+    const chatLink = document.querySelector(selector);
     if (!chatLink) return;
 
     const lastMsg = chatLink.querySelector('.last-message');
