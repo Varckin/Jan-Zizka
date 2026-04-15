@@ -1,5 +1,5 @@
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from profiles.forms import ProfileEditForm
 
@@ -8,11 +8,10 @@ from user_model.models import User
 
 @login_required
 def profile_view(request):
-    if request.headers.get('HX-Request'):
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return render(request, "profiles/block_profile.html")
     
     return render(request, "profiles/profile.html")
-
 
 @login_required
 def profile_watch_view(request, username):
@@ -25,10 +24,8 @@ def profile_watch_view(request, username):
         },
     )
 
-
 @login_required
 def profile_edit_view(request):
-
     if request.method == "POST":
         form = ProfileEditForm(request.POST, request.FILES, instance=request.user)
 
@@ -36,13 +33,14 @@ def profile_edit_view(request):
             form.save()
             messages.success(request, "Profile updated")
 
-            return render(
-                request,
-                "profiles/block_profile.html"
-            )
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return render(request, "profiles/block_profile.html")
+            else:
+                return redirect('profile')
     else:
         form = ProfileEditForm(instance=request.user)
 
-    return render(
-        request, "profiles/block_profile_edit.html", {"form": form}
-    )
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return render(request, "profiles/block_profile_edit.html", {"form": form})
+    else:
+        return redirect('profile')

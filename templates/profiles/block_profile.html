@@ -1,7 +1,7 @@
-<div id="profile-card">
+<div id="profile-card" class="fade-in">
     <div class="profile-header">
         {% if user.avatar %}
-            <img src="{{ user.avatar.url }}" class="profile-avatar">
+            <img src="{{ user.avatar.url }}" class="profile-avatar" alt="Avatar">
         {% else %}
             <div class="profile-avatar placeholder">
                 {{ user.username|first|upper }}
@@ -33,13 +33,9 @@
         </span>
     
         <button
-            class="profile-edit-btn"
-            hx-get="{% url 'profile_edit' %}"
-            hx-target="#profile-card"
-            hx-swap="innerHTML"
-        >
+            class="profile-edit-btn js-edit-profile"
+            data-edit-url="{% url 'profile_edit' %}">
             Edit profile
         </button>
-    
     </div>
 </div>

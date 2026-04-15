@@ -1,32 +1,31 @@
-<div id="profile-card">
+<div id="profile-card" class="fade-in">
     <h2 class="profile-edit-title">Edit profile</h2>
     
     <form
-        hx-post="{% url 'profile_edit' %}"
-        hx-target="#profile-card"
-        hx-swap="innerHTML"
+        method="post"
+        action="{% url 'profile_edit' %}"
         enctype="multipart/form-data"
-        class="profile-form"
-    >
+        class="profile-form js-profile-edit-form"
+        data-profile-url="{% url 'profile' %}">
         {% csrf_token %}
     
         <div class="form-field">
-            <label>First name</label>
+            <label for="{{ form.first_name.id_for_label }}">First name</label>
             {{ form.first_name }}
         </div>
     
         <div class="form-field">
-            <label>Last name</label>
+            <label for="{{ form.last_name.id_for_label }}">Last name</label>
             {{ form.last_name }}
         </div>
     
         <div class="form-field">
-            <label>Bio</label>
+            <label for="{{ form.bio.id_for_label }}">Bio</label>
             {{ form.bio }}
         </div>
     
         <div class="form-field">
-            <label>Avatar</label>
+            <label for="{{ form.avatar.id_for_label }}">Avatar</label>
             {{ form.avatar }}
         </div>
     
@@ -37,14 +36,10 @@
     
             <button
                 type="button"
-                class="profile-cancel-btn"
-                hx-get="{% url 'profile' %}"
-                hx-target="#profile-card"
-                hx-swap="innerHTML"
-            >
+                class="profile-cancel-btn js-cancel-edit"
+                data-profile-url="{% url 'profile' %}">
                 Cancel
             </button>
         </div>
-    
     </form>
 </div>

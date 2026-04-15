@@ -3,8 +3,7 @@
 
 {% block head_extra %}
     <link rel="stylesheet" href="{% static 'css/profile.css' %}">
-    <link rel="stylesheet" href="{% static 'css/profile_edit.css' %}">
-    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+    <script defer src="{% static 'js/profile.js' %}"></script>
 {% endblock %}
 
 {% block title %}Profile{% endblock %}
@@ -12,7 +11,7 @@
 {% block content %}
 <div class="profile-container">
 
-        {% include "profiles/block_profile.html" %}
-        
+    {% include "profiles/block_profile.html" %}
+
 </div>
 {% endblock %}
