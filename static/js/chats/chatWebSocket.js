@@ -24,7 +24,7 @@ export function initChatWebSocket(recipientUsername, currentUsername) {
     };
 }
 
-function appendMessage(user, text, time, attachment, attachmentType, currentUsername) {
+export function appendMessage(user, text, time, attachment, attachmentType, currentUsername) {
     const container = document.getElementById('chat-messages');
     const emptyState = document.getElementById('empty-chat-state');
     if (emptyState) emptyState.remove();
